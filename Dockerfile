@@ -1,12 +1,8 @@
 FROM python:3.8-slim
 
-# Copy files
+# Copy requirements and binary files
 COPY ./binaries/yolov4.h5 ./binaries/yolov4.h5
-
 COPY ./app/requirements.txt ./app/requirements.txt
-COPY ./app/tools.py ./app/tools.py
-COPY ./app/main.py ./app/main.py
-
 
 # Install requirements
 RUN apt-get update
@@ -15,6 +11,10 @@ RUN apt-get install -y libgl1-mesa-glx
 RUN apt-get install -y libglib2.0-0
 RUN python -m pip install --upgrade pip
 RUN pip install -r ./app/requirements.txt
+
+# Copy main application
+COPY ./app/tools.py ./app/tools.py
+COPY ./app/main.py ./app/main.py
 
 # set working directory
 WORKDIR /app
