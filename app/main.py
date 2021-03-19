@@ -1,7 +1,9 @@
 import sys
 sys.path.append('../')
 
+import json
 from fastapi import FastAPI, File, UploadFile
+from fastapi.responses import JSONResponse
 import io
 import cv2
 import numpy as np
@@ -90,6 +92,37 @@ def detect_object(binary_file: UploadFile = File(...)):
     return {'Detected objects': texts}
 
 
+@object_detection_server.post('/return_only_box_arrays')
+def detect_object(binary_file: UploadFile = File(...)):
+    
+    # read received file
+    my_data = binary_file.file.read()
+
+    # convert binary into numpy array
+    my_array = np.frombuffer(my_data, np.uint8)
+
+    # Decode numpy flatten array into cv2 array
+    my_img = cv2.imdecode(my_array, cv2.IMREAD_COLOR)
+
+    # Resize image to match YOLOv4 input
+    image_resized = tf.image.resize(my_img, (HEIGHT_CNN, WIDTH_CNN))
+
+    # Expand array dimension by 1 axis and nomarlize the array (/255)
+    frame = tf.expand_dims(tf.cast(image_resized, tf.float32), axis=0) / 255.0
+
+    # model predictions
+    boxes, scores, classes, valid_detections = model.predict(frame)
+
+    # create text fields containing label and score
+    texts = ['{} {:.2%}'.format(CLASSES[classes[0].astype(int)[_]], scores.round(3)[0][_]) for _ in range(classes.shape[1])]
+
+    # convert numpy array into a list and then into JSON string
+    boxes_json_str = json.dumps(boxes[0].tolist())
+
+    # Return response
+    return JSONResponse({'Boxes': boxes_json_str, 'Labels': texts})
+
+
 @object_detection_server.post('/mirrow')
 def detect_object(binary_file: UploadFile = File(...)):
     
@@ -106,6 +139,7 @@ def detect_object(binary_file: UploadFile = File(...)):
     #cv2.imwrite('uploaded_img.jpg', my_img)
 
     return StreamingResponse(io.BytesIO(my_img.tobytes()), media_type="image/jpg")
+
 
 def initialize():
 
