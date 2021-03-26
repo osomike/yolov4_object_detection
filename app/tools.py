@@ -3,8 +3,8 @@ import cv2
 
 
 def draw_boxes(
-    img : np.ndarray, rec_coordinates : np.ndarray, texts : list, colors : np.ndarray = None, relative_coordinates : bool = False,
-    rec_thickness : int = 3, text_font_scale : int = 0.5, text_thickness : int = 1):
+    img : np.ndarray, rec_coordinates : np.ndarray, labels : list, colors : np.ndarray = None, relative_coordinates : bool = False,
+    rec_thickness : int = 3, label_font_scale : int = 0.5, label_font_thickness : int = 1):
     """
     Method sued to draw boxes and add text to an image.
 
@@ -12,13 +12,13 @@ def draw_boxes(
         img (np.ndarray): Image contained in an numpy array with shape (img_height, img_width, channels). Where channels are BGR (3 channels)
         rec_coordinates (np.ndarray): Array containing the list of rectangles to draw. Each element on the array must contain the following elements:
         [X_start, Y_start, X_end, Y_end]. Where the coordinates are measured from top left of the image.
-        texts (list): List of texts string to add to the image.
+        labels (list): List of labels string to add to the image.
         colors (np.ndarray, optional): Array of colors to use for the boxes. Each element on the array must contain the following elemnts [B_value, G_value, R_value].
         If None is passed BOXES_COLORS will be used as default. Defaults to None.
         relative_coordinates (bool, optional): Bool value to convert \'rec_coordinates\' to relative coordinates. Defaults to False.
         rec_thickness (int, optional): Rectangles thickness. Defaults to 3.
-        text_font_scale (int, optional): Font scale for text. Defaults to 0.5.
-        text_thickness (int, optional): Text thickness. Defaults to 1.
+        label_font_scale (int, optional): Font scale for text. Defaults to 0.5.
+        label_font_thickness (int, optional): Text thickness. Defaults to 1.
 
     Returns:
         [type]: [description]
@@ -26,15 +26,15 @@ def draw_boxes(
     # rec_coordinates X_start, Y_start, X_end, Y_end (Measuring from top left)
     # img should be an array of shape (img_height, img_width, channels)
     # CV2 uses BGR
-    BOXES_COLORS = np.array([[0.000, 0.447, 0.741], [0.850, 0.325, 0.098], [0.929, 0.694, 0.125],
-          [0.494, 0.184, 0.556], [0.466, 0.674, 0.188], [0.301, 0.745, 0.933]]) * 255
+    BOXES_COLORS = np.array([[0, 0, 1], [0, 1, 0], [1, 0, 0],
+          [1, 1, 0], [0, 1, 1], [1, 0, 1]]) * 255.0
 
     input_rec_coor = rec_coordinates.copy()
     input_img = img.copy()
 
     # Sanity check
-    if not isinstance(texts, list):
-        msg = '\'texts\' is not a list. Detected type: \'{}\''.format(type(texts))
+    if not isinstance(labels, list):
+        msg = '\'labels\' is not a list. Detected type: \'{}\''.format(type(labels))
         raise ValueError(msg)
     if not isinstance(input_img, np.ndarray):
         msg = '\'img\' is not a numpy array. Detected type: \'{}\''.format(type(input_img))
@@ -48,8 +48,8 @@ def draw_boxes(
     if (input_rec_coor.ndim != 2) and (input_rec_coor.shape[1] != 4):
         msg = 'Coordinates must have this shape [[y, x, y, x], ... ,[y, x, y, x]]. {}'.format(input_rec_coor)
         raise ValueError(msg)
-    if len(texts) != input_rec_coor.shape[0]:
-        msg = 'texts ({}) and rec_coordinates ({}) have different lengths.'.format(len(texts), input_rec_coor.shape[0])
+    if len(labels) != input_rec_coor.shape[0]:
+        msg = 'labels ({}) and rec_coordinates ({}) have different lengths.'.format(len(labels), input_rec_coor.shape[0])
         raise ValueError(msg)
     if relative_coordinates:
         img_width = input_img.shape[1]
@@ -85,10 +85,10 @@ def draw_boxes(
             thickness=rec_thickness)
         # Get text size
         text_size = cv2.getTextSize(
-            text=texts[i],
+            text=labels[i],
             fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=text_font_scale,
-            thickness=text_thickness)[0]
+            fontScale=label_font_scale,
+            thickness=label_font_thickness)[0]
         v_text_size = text_size[1]
         h_text_size = text_size[0]
         # Draw text background rectangle
@@ -96,16 +96,16 @@ def draw_boxes(
             img=input_img,
             pt1=(start_point_i[0] - rec_thickness, start_point_i[1] - rec_thickness), 
             pt2=(start_point_i[0] - rec_thickness + h_text_size, start_point_i[1] - rec_thickness - v_text_size),
-            color=(0, 0, 0), # Black background
+            color=color_i, # Black background
             thickness=-1)
         # Add Text
         input_img = cv2.putText(
             img=input_img,
-            text=texts[i],
+            text=labels[i],
             org=(start_point_i[0] - rec_thickness, start_point_i[1] - rec_thickness),
             fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=text_font_scale, 
-            color=(0, 255, 0),
-            thickness=text_thickness)
+            fontScale=label_font_scale, 
+            color=(0, 0, 0), # Black text
+            thickness=label_font_thickness)
 
     return input_img

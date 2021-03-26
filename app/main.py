@@ -40,14 +40,18 @@ def detect_object(binary_file: UploadFile = File(...)):
     boxes, scores, classes, valid_detections = model.predict(frame)
 
     # create text fields containing label and score
-    texts = ['{} {:.2%}'.format(CLASSES[classes[0].astype(int)[_]], scores.round(3)[0][_]) for _ in range(classes.shape[1])]
+    labels = ['{} {:.2%}'.format(CLASSES[classes[0].astype(int)[_]], scores.round(3)[0][_]) for _ in range(classes.shape[1])]
 
     # Display the resulting frame
     new_img = draw_boxes(
         img=my_img,
         rec_coordinates=boxes[0],
-        texts=texts,
-        relative_coordinates=True)
+        labels=labels,
+        colors=None,
+        relative_coordinates=True,
+        rec_thickness=3,
+        label_font_scale=0.7,
+        label_font_thickness=1)
 
     # Save array as image
     #cv2.imwrite('uploaded_img.jpg', my_img)
@@ -77,19 +81,23 @@ def detect_object(binary_file: UploadFile = File(...)):
     boxes, scores, classes, valid_detections = model.predict(frame)
 
     # create text fields containing label and score
-    texts = ['{} {:.2%}'.format(CLASSES[classes[0].astype(int)[_]], scores.round(3)[0][_]) for _ in range(classes.shape[1])]
+    labels = ['{} {:.2%}'.format(CLASSES[classes[0].astype(int)[_]], scores.round(3)[0][_]) for _ in range(classes.shape[1])]
 
     # Display the resulting frame
     new_img = draw_boxes(
         img=my_img,
         rec_coordinates=boxes[0],
-        texts=texts,
-        relative_coordinates=True)
+        labels=labels,
+        colors=None,
+        relative_coordinates=True,
+        rec_thickness=3,
+        label_font_scale=0.7,
+        label_font_thickness=1)
 
     # Save array as image
     #cv2.imwrite('uploaded_img.jpg', my_img)
 
-    return {'Detected objects': texts}
+    return {'Detected objects': labels}
 
 
 @object_detection_server.post('/return_only_box_arrays')
@@ -114,13 +122,13 @@ def detect_object(binary_file: UploadFile = File(...)):
     boxes, scores, classes, valid_detections = model.predict(frame)
 
     # create text fields containing label and score
-    texts = ['{} {:.2%}'.format(CLASSES[classes[0].astype(int)[_]], scores.round(3)[0][_]) for _ in range(classes.shape[1])]
+    labels = ['{} {:.2%}'.format(CLASSES[classes[0].astype(int)[_]], scores.round(3)[0][_]) for _ in range(classes.shape[1])]
 
     # convert numpy array into a list and then into JSON string
     boxes_json_str = json.dumps(boxes[0].tolist())
 
     # Return response
-    return JSONResponse({'Boxes': boxes_json_str, 'Labels': texts})
+    return JSONResponse({'Boxes': boxes_json_str, 'Labels': labels})
 
 
 @object_detection_server.post('/mirrow')
