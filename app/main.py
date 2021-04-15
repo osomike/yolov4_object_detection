@@ -18,9 +18,26 @@ from app.tools import draw_boxes
 
 object_detection_server = FastAPI()
 
+@object_detection_server.post('/hello_world')
+def hello_world():
+
+    # read received file
+    return {'message': 'Hola mundo!'}
+
+
+@object_detection_server.post('/operation_numbers/')
+def operation_numbers(number_1 : int, number_2 : int, op : str):
+    exp_to_eval = '{} {} {}'.format(number_1, op, number_2)
+    result = eval(exp_to_eval)
+    msg = 'Result of operation \'{}\' is {}'.format(exp_to_eval, result)
+    print(msg)
+    # read received file
+    return {'message': msg}
+
+
 @object_detection_server.post('/detect_object')
 def detect_object(binary_file: UploadFile = File(...)):
-    
+
     # read received file
     my_data = binary_file.file.read()
 
@@ -83,21 +100,7 @@ def detect_object(binary_file: UploadFile = File(...)):
     # create text fields containing label and score
     labels = ['{} {:.2%}'.format(CLASSES[classes[0].astype(int)[_]], scores.round(3)[0][_]) for _ in range(classes.shape[1])]
 
-    # Display the resulting frame
-    new_img = draw_boxes(
-        img=my_img,
-        rec_coordinates=boxes[0],
-        labels=labels,
-        colors=None,
-        relative_coordinates=True,
-        rec_thickness=3,
-        label_font_scale=0.7,
-        label_font_thickness=1)
-
-    # Save array as image
-    #cv2.imwrite('uploaded_img.jpg', my_img)
-
-    return {'Detected objects': labels}
+    return {'Detected objects': 'All good :)'}
 
 
 @object_detection_server.post('/return_only_box_arrays')
@@ -162,7 +165,7 @@ def initialize():
         num_classes=80,
         training=False,
         yolo_max_boxes=max_objects,
-        yolo_iou_threshold=0.7,
+        yolo_iou_threshold=0.5,
         yolo_score_threshold=0.7,
     )
 

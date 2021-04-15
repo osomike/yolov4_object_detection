@@ -21,6 +21,6 @@ WORKDIR /app
 
 # Only the last command will be executed
 CMD ["uvicorn", "main:object_detection_server", "--host", "0.0.0.0", "--port", "8001"]
-# docker build . -t yolov4_docker
-# docker run -it yolov4_docker bash
-# docker run -p 8000:8001 yolov4_docker
+# docker build . -t yolov4_object_detection
+# docker run -it yolov4_object_detection bash
+# docker run -p 8000:8001 yolov4_object_detection
